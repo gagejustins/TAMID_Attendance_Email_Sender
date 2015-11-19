@@ -1,0 +1,101 @@
+import smtplib
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+bcc = ['jsg483@nyu.edu','justin.gage@stern.nyu.edu']
+
+def send_email(address, absences):
+
+    fromaddr = "nyu@tamidgroup.org"
+    toaddr = address
+    msg = MIMEMultipart()
+    msg['From'] = "NYU TAMID"
+    msg['To'] = toaddr
+    msg['Subject'] = "TAMID Last Night"
+
+    # Body code:
+
+    # First, each number until 4 has its own trailer. After that, its always xth
+
+    if absences == "1":
+        number = "1st"
+    elif absences == "2":
+        number = "2nd"
+    elif absences == "3":
+        number == "3rd"
+    else: number = str(absences) + "th"
+
+    # Concatenate first part of body to number of absences and then to last part of body
+
+    body_1 = """Dear Member,
+
+Our records indicate that you missed last night's TAMID iXperience Event. This counts as your """
+
+    body_2 =  """ absence. Remember that you must attend 80% of all TAMID events to maintain membership.
+
+TAMID at NYU"""
+
+    full_body = body_1 + number + body_2
+
+    msg.attach(MIMEText(full_body, 'plain'))
+
+    server = smtplib.SMTP('smtp.gmail.com', 587)
+    server.starttls()
+    server.login(fromaddr, "tamidemail")
+    text = msg.as_string()
+    server.sendmail(fromaddr, toaddr, text)
+    server.quit()
+
+# Figure out which people missed the most recent event, in a list
+
+perpetrators = []
+
+def names():
+
+    array = open('Array.csv', 'r') # Opens attendance file
+    for line in array: # Iterator
+        split = line.split(',') # Splits list by commas
+        length = len(split) # Gets length
+        status = split[length-1] # Gets if they were absent at most recent event
+        status = status.strip() # Strips that of spaces
+        if status == 'Absent': # Gets name
+            perpetrator = split[0] # Gets name
+            perpetrators.append(perpetrator) # Appends it to perpetrators list
+
+# Get amount of absences
+
+def get_absences(name):
+
+    absence_key = open('Array.csv', 'r')
+    for line in absence_key:
+        split = line.split(',')
+        if split[0] == name:
+            absences = split[3]
+
+    return absences
+
+# Get email addresses from Key.csv
+
+addresses = []
+
+def get_address(name):
+
+    key = open('Key.csv' , 'r') # Open Key.csv
+    for line in key: # Iterator
+        split = line.split(',') # Split by commas
+        if split[0] == name:
+            email = split[1] # Retrieve email
+
+    return email
+
+# Iterate through the perpetrators list, get their amount of absences and email address, and send email
+
+# names()
+#
+# for perpetrator in perpetrators: # Iterates through perpetrators list
+#     email = get_address(perpetrator) # Gets email and stores it in email
+#     print (email)
+#     absences = get_absences(perpetrator) # Gets absences and stores it in absences
+#     print (absences)
+#     send_email(email, absences)
